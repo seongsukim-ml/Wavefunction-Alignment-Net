@@ -1,0 +1,70 @@
+defaults:
+- model: equiformer
+- schedule: polynomial #'cosine', 'reduce_on_plateau','polynomial' 
+# - data_module: default
+- _self_
+
+
+job_id: auto
+seed: 1
+log_dir: "./tmp/logs"
+
+
+wandb:
+  open: True
+  wandb_api_key: 108b6350c41a00f38dddb5b3851dbf12bdbea56b
+  wandb_project: MADFT-NN
+  wandb_group: "test"
+  wandb_notes: ""
+
+#########
+# trainer related config
+model_backbone: LSR_
+output_model: EquivariantScalar_viaTP_Order0
+num_epochs: 3000000 #number of epochs
+max_steps: 200000 #Maximum number of gradient steps.
+batch_size: 16 #batch size
+inference_batch_size: null
+dataloader_num_workers: 4
+lr: 5e-4
+multi_para_group: false
+weight_decay: 0
+enable_hami: false
+enable_energy: true
+enable_forces: true
+energy_weight: 0.01 #Weighting factor for energies in the loss function
+forces_weight: 0.99 #Weighting factor for forces in the loss function
+hami_weight: 0 #Weighting factor for hami in the loss function
+energy_train_loss: 'mse'
+forces_train_loss: 'mse'
+hami_train_loss: 'maemse'
+energy_val_loss: 'mae'
+forces_val_loss: 'mae'
+hami_val_loss: 'mae'
+ngpus: 1
+num_nodes: 1
+precision: 32 # the precison for training, can use 16 for mixed precision
+gradient_clip_val: 5.0
+early_stopping_patience: 300000
+val_check_interval: null #follow pytorch lightning
+test_interval: 10 #Test interval, one test per n epochs (default: 10)
+save_interval: 0 #Save interval, one save per n epochs (default: 10)
+############
+# data realted config
+data_name: QH9
+basis: "def2-svp"  #when predict hamitonian, the basis need to be set
+dataset_path : /home/weixinran/MADFT-NN/local_files/data/QH9_new.db
+dataset_size : 1000 #the dataset size is used for debug. -1 is all data")
+train_ratio: 0.9
+val_ratio: 0.1
+test_ratio: 0.0
+cutoff_lower: 0.0 #Lower cutoff in model
+cutoff_upper: 5.0 #Upper cutoff in model
+used_cache: true
+ema_decay: 1 # 1 means trun off ema and (0,1) is turning on.
+unit: 1 # 627.503
+############
+# model related config
+activation: "silu"
+remove_init: true # fock - init if remove_init else fock
+remove_atomref_energy: true # when true, energy = energy - eachtype_atom_count*atom_ref

@@ -1,0 +1,76 @@
+# For field details: https://amulet-docs.azurewebsites.net/config_file.html
+description: MADFT-NN
+
+target:
+  service: aml
+  name: es-madft-nc96-eastus2
+
+
+# environment:
+#   image: huang6385/feynman:madft-nn-py310-nvcc118
+environment:
+  registry: msrmoldyn.azurecr.io
+  image: feynman:madft-nn-py311torch210-py310torch120
+  username: msrmoldyn
+  # setup:
+  #   - pip install torch==1.12.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+  #   - pip install pytorch-lightning==2.1.2 torch_geometric
+  #   - pip install torchvision==0.13.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+  #   - pip install pyg_lib==0.3.0+pt112cu113 torch_scatter==2.1.0+pt112cu113 torch_sparse==0.6.15+pt112cu113 torch_cluster==1.6.0+pt112cu113 torch_spline_conv==1.2.1+pt112cu113 -f https://data.pyg.org/whl/torch-1.12.0+cu113.html
+
+
+code:
+    local_dir: ../
+    ignore:
+    - "checkpoints" # In principle, ignore all files,
+    - "logs" # and those in projects/livdft,
+    - "wandb" # and those in projects/livdft,
+    - "experiments" # and those in projects/livdft,
+    - "data"
+    - "local_files"
+storage:
+    storageA:
+      storage_account_name: qcacceleration0ae
+      container_name: hamiprediction
+      mount_dir: /mnt/data
+data:
+    local_dir: ../data/ ###NOTICE: only relative path can be used here
+    remote_dir: used_data/
+    storage_id: storageA
+    
+
+
+# SKU usage: G1 (single GPU), G4 (quad GPU), G4-V100 (1 machine, 4 V100 gpus), etc...
+jobs:
+  - name: A100-MADFT-NN-Erpai-pubchem_qhnet_96_o6_new
+    sku: 80G4-A100
+    sla_tier: premium
+    identity: managed
+    tags: [ProjectID:PRJ-0192-A37]
+    command:
+    - ls -hl
+    - df -hl
+    - pwd
+    - eval "$$(conda shell.bash hook)"
+    - conda activate madft_nn_torch210
+    - export PYTHONPATH=$$PYTHONPATH:.
+    # - cp $$AMLT_DATA_DIR/QH9_new.db /dev/shm/
+    - cp -r /mnt/data/used_data/pubchem /dev/shm/
+    # - cp /mnt/data/used_data/QH9_new.db /dev/shm/
+    - python pipelines/train.py --config-name=config.yaml job_id=pubchem_qhnet_96_o6_new wandb.open=True wandb.wandb_group="Eper" wandb.wandb_api_key=c77ec9804aaffba9a04e3b7b4dd389b53210ab39 \
+    - dataset_path="/dev/shm/pubchem" ngpus=4 lr=0.0005 enable_hami=True \
+    - hami_weight=1  batch_size=12 schedule=polynomial schedule.lr_warmup_steps=1000 \
+    - max_steps=100000 used_cache=True \
+    - train_ratio=0.9 val_ratio=0.06 test_ratio=0.002  gradient_clip_val=5.0 dataset_size=-1 model.use_equi_norm=True remove_init=True
+    - logdir="/mnt/data/logs"
+    submit_args:
+      env:
+        {MKL_THREADING_LAYER: GNU}
+      container_args:
+        shm_size: 512g
+    # priority: high
+    # preemptible: false
+  # - python scripts/train.py --conf examples/ET-PUBCHEM2Equi.yaml \
+  #   - --wandb=True --wandb-group="Lin" --job-id="lr2e-4" --layernorm-on-vec whitened \
+  #   - --dataset-path="$$AMLT_DATA_DIR/QH9.db" --ngpus=8 --lr=0.0002
+ 

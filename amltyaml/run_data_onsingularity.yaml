@@ -1,0 +1,64 @@
+description: madft-data-construction
+
+target:
+  service: aml #amlt k8s sing
+  name: ai4s-es-madft-v100lowpri #msrresrchvc  #msroctovc #msrai4svc4: G2-A100
+  # workspace_name: msroctows
+
+
+environment:
+  registry: msrmoldyn.azurecr.io
+  image: feynman:go-madft0.3.0
+  username: msrmoldyn
+  setup:
+    - pip install --upgrade pip
+  # - wandb login 6f1080f993d5d7ad6103e69ef57dd9291f1bf366
+
+code:
+  local_dir: ../
+  ignore:
+    - "checkpoints" # In principle, ignore all files,
+    - "data" # except those in projects/utilities
+    - "logs" # and those in projects/livdft,
+    - "wandb" # and those in projects/livdft,
+    - "experiments" # and those in projects/livdft,
+
+data:
+  local_dir: ../dataset/ ###NOTICE: only relative path can be used here, 
+                            #this is used when first run experiment and copy them to remote-dir. 
+                            #if remote-dir has file, thie line not works
+  remote_dir: dataset/filtered_data
+  storage_id: storageA
+storage:
+  storageA:
+    storage_account_name: qcacceleration
+    container_name: yl-lsrm
+    mount_dir: /mnt/data
+
+search:
+  job_template:
+    name: "{experiment_name:s}_{worker_id}_{random_string:s}"
+    sku: G1
+    sla_tier: premium #premium
+    command:
+    - ls -hl
+    - export LD_LIBRARY_PATH=/opt/env/lib/:$LD_LIBRARY_PATH
+    - /opt/env/bin/python data_gen_pubchem.py -l 0 -s --amlt 1 -p "{worker_id}" -g \
+    - --total_partion $NUM_WORKERS --task-per-gpu 4 --input_dir "{dataset_input_dir}" \
+    - --output_dir "$$AMLT_DATA_DIR/../pubchem_20231117/"
+    submit_args:
+      env:
+          {SHARED_MEMORY_PERCENT: 0.1}
+  type: grid # random
+  max_trials: 64 # NOTO here: all the search params maximum 
+  params:
+    - name: worker_id
+      spec: discrete
+      values: "[i for i in range($NUM_WORKERS)]"
+    - name: dataset_input_dir
+      spec: discrete
+      values:
+      - $$AMLT_DATA_DIR/b3lyp_pm6_chon500nosalt_0_9244073_split200000_0.pth
+      - $$AMLT_DATA_DIR/b3lyp_pm6_chon500nosalt_0_9244073_split200000_1.pth
+      - $$AMLT_DATA_DIR/b3lyp_pm6_chon500nosalt_0_9244073_split200000_2.pth
+      - $$AMLT_DATA_DIR/b3lyp_pm6_chon500nosalt_0_9244073_split200000_3.pth

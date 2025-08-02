@@ -1,0 +1,17 @@
+order : 4
+embedding_dimension: 96
+bottle_hidden_size: 32
+num_gnn_layers: 2
+max_radius: 15
+radius_embed_dim: 16
+use_equi_norm: True
+
+# para that only used by lsm-qhnet
+short_cutoff_upper: 5
+long_cutoff_upper: 15
+num_scale_atom_layers: 4
+num_long_range_layers: 2
+
+# load lsrm ckpt into lsrqhnet
+lsrm_ckpt_path: null
+load_pretrain: ''

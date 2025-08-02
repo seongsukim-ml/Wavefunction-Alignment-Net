@@ -1,0 +1,62 @@
+name: madft-nn
+channels:
+  - conda-forge
+  - defaults
+  - nvidia
+dependencies:
+  # - python=3.11
+  - pip
+  - build
+  - pybind11
+  - pytest
+  - qcelemental
+  - qcengine
+  - scipy
+  - pandas
+  - numpy
+  - numba
+  - wandb
+  # torch
+  - pytorch::pytorch=2.1.0
+  - pytorch::torchvision
+  - pytorch::torchaudio=2.1.0
+  - pytorch::pytorch-cuda=12.1
+  - pytorch-lightning
+  - tensorboardx
+  # QHNet
+  - e3nn
+  - hydra-core
+  - rdkit
+  - transformers
+  # ocp
+  - conda-forge::submitit
+  - pip:
+    - pyscf==2.4.0
+    - apsw
+    - cupy-wheel
+    - torch_runstats
+    - lmdb
+    - mlflow
+    - azureml-mlflow
+    - azure-ai-ml
+    - azure-identity
+    # wandb
+    - wandb
+    # ocp
+    - syrupy
+    - ray
+    - orjson
+    # QHNet
+    - ase
+    - torch_ema
+    - --find-links https://data.pyg.org/whl/torch-2.1.0+cu121.html
+    - pyg-lib
+    - torch_scatter 
+    - torch_sparse 
+    - torch_cluster
+    - torch_spline_conv 
+    - torch_geometric
+    # amlt
+    - --extra-index-url https://msrpypi.azurewebsites.net/nightly/leloojoo
+    - amlt>=10.0.0a0
+    - git+https://github.com/Open-Catalyst-Project/ocp.git
