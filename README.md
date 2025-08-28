@@ -32,7 +32,7 @@ The framework supports several neural network architectures:
 
 1. **QHNet**: Quantum Hamiltonian Network for molecular property prediction
 2. **Equiformer**: Equivariant transformer architecture with attention mechanisms
-3. **ViSNet**: Vision-inspired network for molecular systems
+3. **ViSNet**: Vector-Scalar Interaction networks
 4. **LSR Models**: Large-scale representation models with improved efficiency
 
 ### Key Components:
